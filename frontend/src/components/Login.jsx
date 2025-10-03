@@ -65,7 +65,11 @@ const Login = ({ onSwitchToRegister }) => {
     try {
       const result = await login({ email: formData.email, password: formData.password });
       
-      if (result.success) {
+      if (import.meta.env.DEV) {
+        console.log('🔍 Login result:', result);
+      }
+      
+      if (result && result.success) {
         // Success - clear errors and show success message
         setError('');
         setSuccess(result.message || 'Login successful! Welcome back!');
@@ -75,13 +79,19 @@ const Login = ({ onSwitchToRegister }) => {
       } else {
         // Show error message in UI
         setSuccess('');
-        setError(result.error || 'Login failed. Please try again.');
+        const errorMessage = result?.error || 'Login failed. Please try again.';
+        setError(errorMessage);
+        
+        if (import.meta.env.DEV) {
+          console.log('🚨 Login error displayed:', errorMessage);
+        }
       }
     } catch (error) {
-      // Only log in development
+      // Handle unexpected errors
       if (import.meta.env.DEV) {
-        console.error('Unexpected login error:', error);
+        console.error('❌ Unexpected login error:', error);
       }
+      setSuccess('');
       setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);

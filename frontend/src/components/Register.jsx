@@ -67,16 +67,15 @@ const Register = ({ onSwitchToLogin }) => {
     e.preventDefault();
     
     if (!validateForm()) return;
-
     setIsSubmitting(true);
     try {
-      const result = await register({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password
-      });
-
-      if (result.success) {
+      const result = await register(formData);
+      
+      if (import.meta.env.DEV) {
+        console.log('🔍 Registration result:', result);
+      }
+      
+      if (result && result.success) {
         // Success - clear errors and show success message
         setError('');
         setSuccess(result.message || 'Registration successful! Welcome to Todo Master!');
@@ -86,19 +85,24 @@ const Register = ({ onSwitchToLogin }) => {
       } else {
         // Show error message in UI
         setSuccess('');
-        setError(result.error || 'Registration failed. Please try again.');
+        const errorMessage = result?.error || 'Registration failed. Please try again.';
+        setError(errorMessage);
+        
+        if (import.meta.env.DEV) {
+          console.log('🚨 Registration error displayed:', errorMessage);
+        }
       }
     } catch (error) {
-      // Only log in development
+      // Handle unexpected errors
       if (import.meta.env.DEV) {
-        console.error('Unexpected registration error:', error);
+        console.error('❌ Unexpected registration error:', error);
       }
+      setSuccess('');
       setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
-
   return (
     <div className="auth-container">
       <div className="auth-card">

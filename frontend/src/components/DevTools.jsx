@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ApiDebugger from './ApiDebugger';
 
 const DevTools = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -100,6 +101,8 @@ const DevTools = () => {
               </div>
             </div>
           )}
+          
+          <ApiDebugger />
         </div>
       )}
     </>

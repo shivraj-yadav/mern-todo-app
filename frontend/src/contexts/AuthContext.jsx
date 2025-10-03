@@ -125,17 +125,21 @@ export const AuthProvider = ({ children }) => {
         data: response.data 
       };
     } catch (error) {
-      // Only log in development
-      if (import.meta.env.DEV) {
-        console.error('Registration error:', error);
-      }
-      
-      // Handle specific error cases with better messages
+      // Handle specific registration error cases
       let errorMessage = 'Registration failed. Please try again.';
       let errorCode = null;
       
+      if (import.meta.env.DEV) {
+        console.error('❌ Registration failed:', {
+          status: error.response?.status,
+          message: error.response?.data?.message,
+          code: error.response?.data?.code,
+          url: error.config?.url
+        });
+      }
+      
       if (error.response?.data) {
-        errorMessage = error.response.data.message || 'Registration failed. Please try again.';
+        errorMessage = error.response.data.message || errorMessage;
         errorCode = error.response.data.code;
         
         // Log the full error for debugging (dev only)
@@ -185,40 +189,40 @@ export const AuthProvider = ({ children }) => {
       setToken(newToken);
       setUser(newUser);
       
+      if (import.meta.env.DEV) {
+        console.log('✅ Login successful:', newUser.name);
+      }
+      
       return { 
         success: true, 
         message: 'Login successful! Welcome back!',
         data: response.data 
       };
     } catch (error) {
-      // Only log in development
-      if (import.meta.env.DEV) {
-        console.error('Login error:', error);
-      }
-      
       // Handle specific login error cases
       let errorMessage = 'Invalid email or password. Please try again.';
       let errorCode = null;
       
+      if (import.meta.env.DEV) {
+        console.error('❌ Login failed:', {
+          status: error.response?.status,
+          message: error.response?.data?.message,
+          code: error.response?.data?.code,
+          url: error.config?.url
+        });
+      }
+      
       if (error.response?.data) {
-        errorMessage = error.response.data.message || 'Invalid email or password. Please try again.';
+        errorMessage = error.response.data.message || errorMessage;
         errorCode = error.response.data.code;
         
-        // Log the full error for debugging (dev only)
-        if (import.meta.env.DEV) {
-          console.log('Login error details:', {
-            status: error.response.status,
-            data: error.response.data,
-            message: errorMessage,
-            code: errorCode
-          });
-        }
-        
-        // Handle specific status codes
+        // Handle specific status codes with user-friendly messages
         if (error.response.status === 404) {
           errorMessage = 'User does not exist. Please register first.';
         } else if (error.response.status === 401) {
           errorMessage = 'Invalid email or password. Please try again.';
+        } else if (error.response.status === 400) {
+          errorMessage = error.response.data.message || 'Please check your input and try again.';
         } else if (error.response.status >= 500) {
           errorMessage = 'Server error. Please try again later.';
         }
@@ -227,9 +231,6 @@ export const AuthProvider = ({ children }) => {
       } else if (error.code === 'ECONNABORTED') {
         errorMessage = 'Request timeout. The server may be starting up, please try again in a moment.';
       } else {
-        if (import.meta.env.DEV) {
-          console.log('Unexpected login error:', error);
-        }
         errorMessage = 'Something went wrong. Please try again.';
       }
       
