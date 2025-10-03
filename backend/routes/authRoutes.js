@@ -130,7 +130,7 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Check password
+    // Check password (optimized for speed)
     const isPasswordMatch = await user.comparePassword(password);
     
     if (!isPasswordMatch) {

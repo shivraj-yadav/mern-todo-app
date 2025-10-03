@@ -31,8 +31,26 @@ export const AuthProvider = ({ children }) => {
   // Create axios instance with auth header (optimized timeout)
   const authAPI = axios.create({
     baseURL: `${API_URL}/api/auth`,
-    timeout: IS_PRODUCTION ? 45000 : 10000, // 45s for production cold starts, 10s for dev
+    timeout: IS_PRODUCTION ? 30000 : 8000, // 30s for production, 8s for dev (faster)
   });
+
+  // Add response interceptor for better error handling
+  authAPI.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      // Don't log in production to keep console clean
+      if (import.meta.env.DEV) {
+        console.error('Auth API Error:', {
+          status: error.response?.status,
+          message: error.response?.data?.message,
+          code: error.response?.data?.code
+        });
+      }
+      
+      // Always throw the original error so components can handle it
+      throw error;
+    }
+  );
 
   // Add token to requests if available
   useEffect(() => {

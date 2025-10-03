@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import ErrorMessage from './ErrorMessage';
+import AuthErrorMessage from './AuthErrorMessage';
 import SuccessMessage from './SuccessMessage';
 
 const Login = ({ onSwitchToRegister }) => {
@@ -101,14 +101,14 @@ const Login = ({ onSwitchToRegister }) => {
             message={success} 
             onClose={() => setSuccess('')}
           />
-          <ErrorMessage 
+          <AuthErrorMessage 
             error={error} 
             onClose={() => setError('')}
           />
 
           <div className="form-group">
             <label htmlFor="email" className="form-label">
-              Email Addresss
+              Email Address
             </label>
             <input
               type="email"

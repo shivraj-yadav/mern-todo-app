@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import ErrorMessage from './ErrorMessage';
+import AuthErrorMessage from './AuthErrorMessage';
 import SuccessMessage from './SuccessMessage';
 
 const Register = ({ onSwitchToLogin }) => {
@@ -112,7 +112,7 @@ const Register = ({ onSwitchToLogin }) => {
             message={success} 
             onClose={() => setSuccess('')}
           />
-          <ErrorMessage 
+          <AuthErrorMessage 
             error={error} 
             onClose={() => setError('')}
           />

@@ -783,6 +783,329 @@ body {
   color: var(--primary-dark);
 }
 
+/* Enhanced Authentication Error Messages */
+.auth-error-message {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: var(--border-radius);
+  border-left: 4px solid;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  animation: slideInFromTop 0.3s ease-out;
+}
+
+.auth-error-message.user-not-found {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-left-color: #f59e0b;
+  color: #92400e;
+}
+
+.auth-error-message.invalid-credentials {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border-left-color: #dc2626;
+  color: #991b1b;
+}
+
+.auth-error-message.server-error {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-left-color: #f59e0b;
+  color: #92400e;
+}
+
+.auth-error-message.timeout-error {
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+  border-left-color: #4f46e5;
+  color: #3730a3;
+}
+
+.auth-error-message.duplicate-user {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border-left-color: #10b981;
+  color: #065f46;
+}
+
+.auth-error-message.general-error {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border-left-color: #dc2626;
+  color: #991b1b;
+}
+
+.error-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.error-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.error-text {
+  font-weight: 500;
+}
+
+.error-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+  padding: 0.25rem;
+  line-height: 1;
+  margin-left: 0.5rem;
+}
+
+.error-close:hover {
+  opacity: 1;
+}
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Performance Monitor (Development Only) */
+.performance-monitor {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  font-size: 0.75rem;
+  z-index: 9999;
+  min-width: 200px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.performance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.performance-header span {
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.reset-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.reset-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.performance-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.metric-label {
+  opacity: 0.8;
+}
+
+.metric-value {
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+.metric-value.success {
+  color: #10b981;
+}
+
+.metric-value.error {
+  color: #ef4444;
+}
+
+@media (max-width: 768px) {
+  .performance-monitor {
+    top: auto;
+    bottom: 1rem;
+    right: 1rem;
+    left: 1rem;
+    min-width: auto;
+  }
+}
+
+/* Development Tools (Development Only) */
+.dev-tools-toggle {
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 9998;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.dev-tools-toggle:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+}
+
+.dev-tools-panel {
+  position: fixed;
+  bottom: 5rem;
+  left: 1rem;
+  background: rgba(0, 0, 0, 0.95);
+  color: white;
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  font-size: 0.8rem;
+  z-index: 9998;
+  min-width: 280px;
+  max-width: 400px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.dev-tools-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dev-tools-header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.dev-tools-header button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.dev-tools-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.dev-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-align: center;
+}
+
+.dev-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.dev-tools-info {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.info-item {
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
+}
+
+.dev-tools-logs {
+  margin-top: 1rem;
+}
+
+.dev-tools-logs h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.85rem;
+}
+
+.logs-container {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  padding: 0.5rem;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.log-item {
+  font-size: 0.7rem;
+  margin-bottom: 0.25rem;
+  font-family: 'Courier New', monospace;
+  opacity: 0.9;
+}
+
+.log-item:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .dev-tools-panel {
+    left: 1rem;
+    right: 1rem;
+    min-width: auto;
+    max-width: none;
+  }
+  
+  .dev-tools-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
 .auth-button {
   width: 100%;
   padding: 0.875rem 1.5rem;

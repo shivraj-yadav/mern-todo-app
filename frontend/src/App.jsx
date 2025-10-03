@@ -5,6 +5,8 @@ import AuthWrapper from "./components/AuthWrapper";
 import Navigation from "./components/Navigation";
 import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
+import PerformanceMonitor from "./components/PerformanceMonitor";
+import DevTools from "./components/DevTools";
 import "./index.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -195,6 +197,7 @@ function TodoApp() {
 
   return (
     <>
+      <PerformanceMonitor show={import.meta.env.DEV} />
       <Navigation />
       <div className="app">
         <div className="app-container">
@@ -296,6 +299,7 @@ function TodoApp() {
         </main>
       </div>
     </div>
+    <DevTools />
     </>
   );
 }
