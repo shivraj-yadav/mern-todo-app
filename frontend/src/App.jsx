@@ -23,7 +23,9 @@ const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('API Error:', error);
+    if (import.meta.env.DEV) {
+      console.error('API Error:', error);
+    }
     if (error.code === 'ECONNABORTED') {
       throw new Error('Request timeout. Please try again.');
     }
@@ -43,13 +45,20 @@ function TodoApp() {
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { user, getAuthHeader } = useAuth();
+  const { user, token, getAuthHeader } = useAuth();
 
   // Fetch tasks with error handling
   const fetchTasks = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
+      
+      // Check if user is authenticated first
+      if (!user || !token) {
+        setTasks([]);
+        return;
+      }
+      
       const response = await api.get('/tasks', {
         headers: getAuthHeader()
       });
@@ -57,12 +66,19 @@ function TodoApp() {
       const tasksData = response.data.tasks || response.data;
       setTasks(Array.isArray(tasksData) ? tasksData : []);
     } catch (err) {
+      // If auth error, don't show error - let auth system handle it
+      if (err.response?.status === 401) {
+        setTasks([]);
+        return;
+      }
       setError(err.message || 'Failed to load tasks');
-      console.error('Error fetching tasks:', err);
+      if (import.meta.env.DEV) {
+        console.error('Error fetching tasks:', err);
+      }
     } finally {
       setLoading(false);
     }
-  }, [getAuthHeader]);
+  }, [getAuthHeader, user, token]);
 
   useEffect(() => {
     fetchTasks();
@@ -130,7 +146,6 @@ function TodoApp() {
 
   return (
     <>
-      <Navigation />
       <div className="app">
         <div className="app-container">
           <header className="app-header">

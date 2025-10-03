@@ -57,7 +57,10 @@ class ErrorBoundary extends React.Component {
             
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
               <button
-                onClick={() => window.location.reload()}
+                onClick={() => {
+                  console.log('Refreshing page...');
+                  window.location.reload();
+                }}
                 style={{
                   background: 'rgba(255, 255, 255, 0.2)',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
@@ -68,18 +71,15 @@ class ErrorBoundary extends React.Component {
                   fontSize: '1rem',
                   transition: 'all 0.2s ease'
                 }}
-                onMouseOver={(e) => {
-                  e.target.style.background = 'rgba(255, 255, 255, 0.3)';
-                }}
-                onMouseOut={(e) => {
-                  e.target.style.background = 'rgba(255, 255, 255, 0.2)';
-                }}
               >
                 🔄 Refresh Page
               </button>
               
               <button
-                onClick={() => this.setState({ hasError: false, error: null, errorInfo: null })}
+                onClick={() => {
+                  console.log('Trying again...');
+                  this.setState({ hasError: false, error: null, errorInfo: null });
+                }}
                 style={{
                   background: 'transparent',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
@@ -89,12 +89,6 @@ class ErrorBoundary extends React.Component {
                   cursor: 'pointer',
                   fontSize: '1rem',
                   transition: 'all 0.2s ease'
-                }}
-                onMouseOver={(e) => {
-                  e.target.style.background = 'rgba(255, 255, 255, 0.1)';
-                }}
-                onMouseOut={(e) => {
-                  e.target.style.background = 'transparent';
                 }}
               >
                 🔙 Try Again
