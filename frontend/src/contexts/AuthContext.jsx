@@ -96,17 +96,22 @@ export const AuthProvider = ({ children }) => {
       let errorCode = null;
       
       if (error.response?.data) {
-        errorMessage = error.response.data.message;
+        errorMessage = error.response.data.message || 'Registration failed. Please try again.';
         errorCode = error.response.data.code;
         
-        // Custom handling for specific error codes
-        if (errorCode === 'USER_EXISTS') {
-          errorMessage = 'An account with this email already exists. Please login instead.';
-        }
+        // Log the full error for debugging
+        console.log('Registration error details:', {
+          status: error.response.status,
+          data: error.response.data,
+          message: errorMessage,
+          code: errorCode
+        });
       } else if (error.message === 'Network Error') {
         errorMessage = 'Unable to connect to server. Please check your internet connection.';
       } else if (error.code === 'ECONNABORTED') {
         errorMessage = 'Request timeout. The server may be starting up, please try again in a moment.';
+      } else {
+        console.log('Unexpected registration error:', error);
       }
       
       return { 
@@ -145,23 +150,35 @@ export const AuthProvider = ({ children }) => {
       console.error('Login error:', error);
       
       // Handle specific login error cases
-      let errorMessage = 'Login failed. Please try again.';
+      let errorMessage = 'Invalid email or password. Please try again.';
       let errorCode = null;
       
       if (error.response?.data) {
-        errorMessage = error.response.data.message;
+        errorMessage = error.response.data.message || 'Invalid email or password. Please try again.';
         errorCode = error.response.data.code;
         
-        // Custom handling for specific error codes
-        if (errorCode === 'USER_NOT_FOUND') {
+        // Log the full error for debugging
+        console.log('Login error details:', {
+          status: error.response.status,
+          data: error.response.data,
+          message: errorMessage,
+          code: errorCode
+        });
+        
+        // Handle specific status codes
+        if (error.response.status === 404) {
           errorMessage = 'User does not exist. Please register first.';
-        } else if (errorCode === 'INVALID_PASSWORD') {
-          errorMessage = 'Invalid password. Please try again.';
+        } else if (error.response.status === 401) {
+          errorMessage = 'Invalid email or password. Please try again.';
+        } else if (error.response.status >= 500) {
+          errorMessage = 'Server error. Please try again later.';
         }
       } else if (error.message === 'Network Error') {
         errorMessage = 'Unable to connect to server. Please check your internet connection.';
       } else if (error.code === 'ECONNABORTED') {
         errorMessage = 'Request timeout. The server may be starting up, please try again in a moment.';
+      } else {
+        console.log('Unexpected login error:', error);
       }
       
       return { 

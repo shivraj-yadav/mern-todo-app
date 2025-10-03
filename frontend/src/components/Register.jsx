@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import ErrorMessage from './ErrorMessage';
 
 const Register = ({ onSwitchToLogin }) => {
   const [formData, setFormData] = useState({
@@ -75,22 +76,16 @@ const Register = ({ onSwitchToLogin }) => {
       });
 
       if (result.success) {
-        // Show success message
-        alert(result.message || 'Registration successful! Welcome to Todo Master!');
+        // Success - clear any errors
+        setError('');
+        console.log('Registration successful:', result.message);
       } else {
-        // Show specific error message with alert for better UX
-        if (result.code === 'USER_EXISTS') {
-          alert('An account with this email already exists. Please login instead.');
-        } else {
-          alert(result.error || 'Registration failed');
-        }
-        setError(result.error || 'Registration failed');
+        // Show error message in UI instead of alert
+        setError(result.error || 'Registration failed. Please try again.');
       }
     } catch (error) {
-      console.error('Registration error:', error);
-      const errorMsg = 'An unexpected error occurred. Please try again.';
-      alert(errorMsg);
-      setError(errorMsg);
+      console.error('Unexpected registration error:', error);
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -105,11 +100,10 @@ const Register = ({ onSwitchToLogin }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
-          {error && (
-            <div className="error-message">
-              <span>⚠️ {error}</span>
-            </div>
-          )}
+          <ErrorMessage 
+            error={error} 
+            onClose={() => setError('')}
+          />
 
           <div className="form-group">
             <label htmlFor="name" className="form-label">

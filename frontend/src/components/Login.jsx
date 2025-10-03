@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import ErrorMessage from './ErrorMessage';
 
 const Login = ({ onSwitchToRegister }) => {
   const [formData, setFormData] = useState({
@@ -63,24 +64,16 @@ const Login = ({ onSwitchToRegister }) => {
       const result = await login({ email: formData.email, password: formData.password });
       
       if (result.success) {
-        // Show success message briefly before redirect
-        alert(result.message || 'Login successful!');
+        // Success - no need for alert, just clear any errors
+        setError('');
+        console.log('Login successful:', result.message);
       } else {
-        // Show specific error message with alert for better UX
-        if (result.code === 'USER_NOT_FOUND') {
-          alert('User does not exist. Please register first.');
-        } else if (result.code === 'INVALID_PASSWORD') {
-          alert('Invalid password. Please try again.');
-        } else {
-          alert(result.error || 'Login failed');
-        }
-        setError(result.error || 'Login failed');
+        // Show error message in UI instead of alert
+        setError(result.error || 'Login failed. Please try again.');
       }
     } catch (error) {
-      console.error('Login error:', error);
-      const errorMsg = 'An unexpected error occurred. Please try again.';
-      alert(errorMsg);
-      setError(errorMsg);
+      console.error('Unexpected login error:', error);
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -95,11 +88,10 @@ const Login = ({ onSwitchToRegister }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
-          {error && (
-            <div className="error-message">
-              <span>⚠️ {error}</span>
-            </div>
-          )}
+          <ErrorMessage 
+            error={error} 
+            onClose={() => setError('')}
+          />
 
           <div className="form-group">
             <label htmlFor="email" className="form-label">

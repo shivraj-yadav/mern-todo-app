@@ -60,7 +60,8 @@ router.post('/register', async (req, res) => {
     const token = generateToken(user._id);
 
     res.status(201).json({
-      message: 'User registered successfully',
+      success: true,
+      message: 'Registration successful! Welcome to Todo Master!',
       token,
       user: {
         id: user._id,
@@ -71,22 +72,31 @@ router.post('/register', async (req, res) => {
   } catch (error) {
     console.error('Register error:', error);
     
+    // Handle validation errors
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({
-        message: 'Validation error',
-        errors: messages
+        success: false,
+        message: 'Please check your input and try again.',
+        errors: messages,
+        code: 'VALIDATION_ERROR'
       });
     }
     
+    // Handle duplicate email (MongoDB duplicate key error)
     if (error.code === 11000) {
       return res.status(400).json({
-        message: 'Email already exists'
+        success: false,
+        message: 'An account with this email already exists. Please login instead.',
+        code: 'USER_EXISTS'
       });
     }
     
+    // Generic server error
     res.status(500).json({
-      message: 'Server error during registration'
+      success: false,
+      message: 'Server error during registration. Please try again later.',
+      code: 'SERVER_ERROR'
     });
   }
 });
@@ -98,58 +108,79 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validation
+    // Fast validation
     if (!email || !password) {
       return res.status(400).json({
-        message: 'Please provide email and password'
+        success: false,
+        message: 'Please provide email and password',
+        code: 'MISSING_FIELDS'
       });
     }
 
     const trimmedEmail = email.toLowerCase().trim();
 
-    // Check if user exists first
-    const user = await User.findOne({ email: trimmedEmail }).select('+password');
+    // Optimized: Find user and check password in one operation using static method
+    try {
+      const user = await User.findByCredentials(trimmedEmail, password);
+      
+      // Generate token immediately after successful authentication
+      const token = generateToken(user._id);
+
+      res.json({
+        success: true,
+        message: 'Login successful! Welcome back!',
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email
+        }
+      });
+    } catch (authError) {
+      // Handle authentication errors from User.findByCredentials
+      if (authError.message === 'USER_NOT_FOUND') {
+        return res.status(404).json({
+          success: false,
+          message: 'User does not exist. Please register first.',
+          code: 'USER_NOT_FOUND'
+        });
+      }
+      
+      if (authError.message === 'INVALID_PASSWORD') {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid email or password. Please try again.',
+          code: 'INVALID_PASSWORD'
+        });
+      }
+      
+      throw authError; // Re-throw unexpected errors
+    }
+  } catch (error) {
+    console.error('Login error:', error);
     
-    if (!user) {
+    // Handle specific error types
+    if (error.message === 'USER_NOT_FOUND') {
       return res.status(404).json({
+        success: false,
         message: 'User does not exist. Please register first.',
         code: 'USER_NOT_FOUND'
       });
     }
-
-    // Check password
-    const isPasswordMatch = await user.comparePassword(password);
     
-    if (!isPasswordMatch) {
+    if (error.message === 'INVALID_PASSWORD') {
       return res.status(401).json({
-        message: 'Invalid password. Please try again.',
+        success: false,
+        message: 'Invalid email or password. Please try again.',
         code: 'INVALID_PASSWORD'
       });
     }
-
-    // Generate token
-    const token = generateToken(user._id);
-
-    res.json({
-      message: 'Login successful',
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email
-      }
-    });
-  } catch (error) {
-    console.error('Login error:', error);
     
-    if (error.message === 'Invalid email or password') {
-      return res.status(401).json({
-        message: 'Invalid email or password'
-      });
-    }
-    
+    // Generic server error
     res.status(500).json({
-      message: 'Server error during login'
+      success: false,
+      message: 'Server error during login. Please try again later.',
+      code: 'SERVER_ERROR'
     });
   }
 });
