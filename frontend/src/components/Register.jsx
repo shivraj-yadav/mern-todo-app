@@ -184,7 +184,7 @@ const Register = ({ onSwitchToLogin }) => {
             {isSubmitting ? (
               <>
                 <div className="spinner"></div>
-                Creating Account...
+                Creating Account... (may take 30-60s)
               </>
             ) : (
               <>

@@ -19,16 +19,19 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const IS_PRODUCTION = import.meta.env.PROD;
   
-  // Debug logging
-  console.log('🔗 API_URL:', API_URL);
-  console.log('🔗 Auth API Base URL:', `${API_URL}/api/auth`);
-  console.log('🔗 Expected backend port: 10000');
+  // Debug logging (only in development)
+  if (!IS_PRODUCTION) {
+    console.log('🔗 API_URL:', API_URL);
+    console.log('🔗 Auth API Base URL:', `${API_URL}/api/auth`);
+    console.log('🔗 Environment:', IS_PRODUCTION ? 'Production' : 'Development');
+  }
 
-  // Create axios instance with auth header
+  // Create axios instance with auth header (increased timeout for Render cold starts)
   const authAPI = axios.create({
     baseURL: `${API_URL}/api/auth`,
-    timeout: 10000,
+    timeout: 30000, // 30 seconds for Render free tier cold starts
   });
 
   // Add token to requests if available
@@ -67,6 +70,8 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       setLoading(true);
+      console.log('🚀 Starting registration request...');
+      console.log('⏳ This may take 30-60 seconds if Render service is sleeping...');
       const response = await authAPI.post('/register', userData);
       
       const { token: newToken, user: newUser } = response.data;

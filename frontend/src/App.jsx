@@ -2,17 +2,18 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import AuthWrapper from "./components/AuthWrapper";
-import Navigation from "./components/Navigation";
 import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
 import "./index.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const IS_PRODUCTION = import.meta.env.PROD;
 
 // Create axios instance with default config
 const api = axios.create({
   baseURL: `${API_URL}/api`,
-  timeout: 10000,
+  timeout: IS_PRODUCTION ? 30000 : 10000, // longer timeout for production
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
