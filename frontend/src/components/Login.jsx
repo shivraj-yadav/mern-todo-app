@@ -108,7 +108,7 @@ const Login = ({ onSwitchToRegister }) => {
 
           <div className="form-group">
             <label htmlFor="email" className="form-label">
-              Email Address
+              Email Addresss
             </label>
             <input
               type="email"
