@@ -1,0 +1,21 @@
+{
+  "name": "Todo Master - Task Management App",
+  "short_name": "Todo Master",
+  "description": "Organize your life, one task at a time",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#667eea",
+  "theme_color": "#667eea",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "lang": "en",
+  "dir": "ltr"
+}

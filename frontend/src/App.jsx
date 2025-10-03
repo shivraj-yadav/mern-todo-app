@@ -1,36 +1,98 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
+import "./index.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+// Create axios instance with default config
+const api = axios.create({
+  baseURL: `${API_URL}/api`,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add response interceptor for error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error('API Error:', error);
+    if (error.code === 'ECONNABORTED') {
+      throw new Error('Request timeout. Please try again.');
+    }
+    if (error.response?.status >= 500) {
+      throw new Error('Server error. Please try again later.');
+    }
+    if (error.response?.status === 404) {
+      throw new Error('Resource not found.');
+    }
+    throw error;
+  }
+);
 
 function App() {
   const [tasks, setTasks] = useState([]);
   const [filter, setFilter] = useState("all");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    axios
-      .get(`${API_URL}/api/tasks`)
-      .then((res) => setTasks(res.data));
+  // Fetch tasks with error handling
+  const fetchTasks = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await api.get('/tasks');
+      setTasks(response.data);
+    } catch (err) {
+      setError(err.message || 'Failed to load tasks');
+      console.error('Error fetching tasks:', err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
+
   const addTask = async (title) => {
-    const res = await axios.post(`${API_URL}/api/tasks`, { title });
-    setTasks([...tasks, res.data]);
+    try {
+      const response = await api.post('/tasks', { title });
+      setTasks(prevTasks => [...prevTasks, response.data]);
+      return response.data;
+    } catch (err) {
+      const errorMessage = err.message || 'Failed to add task';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
   };
 
   const updateTask = async (id, updatedData) => {
-    const res = await axios.put(
-      `${API_URL}/api/tasks/${id}`,
-      updatedData
-    );
-    setTasks(tasks.map((task) => (task._id === id ? res.data : task)));
+    try {
+      const response = await api.put(`/tasks/${id}`, updatedData);
+      setTasks(prevTasks => 
+        prevTasks.map((task) => (task._id === id ? response.data : task))
+      );
+      return response.data;
+    } catch (err) {
+      const errorMessage = err.message || 'Failed to update task';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
   };
 
   const deleteTask = async (id) => {
-    await axios.delete(`${API_URL}/api/tasks/${id}`);
-    setTasks(tasks.filter((task) => task._id !== id));
+    try {
+      await api.delete(`/tasks/${id}`);
+      setTasks(prevTasks => prevTasks.filter((task) => task._id !== id));
+    } catch (err) {
+      const errorMessage = err.message || 'Failed to delete task';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
   };
 
   const filteredTasks = tasks.filter((task) => {
@@ -39,22 +101,113 @@ function App() {
     return true;
   });
 
+  // Calculate stats
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter(task => task.completed).length;
+  const pendingTasks = totalTasks - completedTasks;
+
+  const clearError = () => setError(null);
+
   return (
-    <div className="App">
-      <h1>Todo List App</h1>
-      <TaskForm addTask={addTask} />
+    <div className="app">
+      <div className="app-container">
+        <header className="app-header">
+          <h1 className="app-title">Todo Master</h1>
+          <p className="app-subtitle">Organize your life, one task at a time</p>
+        </header>
 
-      <div>
-        <button onClick={() => setFilter("all")}>All</button>
-        <button onClick={() => setFilter("completed")}>Completed</button>
-        <button onClick={() => setFilter("pending")}>Pending</button>
+        <main className="app-content">
+          {error && (
+            <div className="error-banner" style={{
+              background: '#fee2e2',
+              border: '1px solid #fecaca',
+              borderRadius: '0.5rem',
+              padding: '1rem',
+              marginBottom: '1rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <span style={{ color: '#dc2626' }}>⚠️ {error}</span>
+              <button 
+                onClick={clearError}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#dc2626',
+                  cursor: 'pointer',
+                  fontSize: '1.2rem'
+                }}
+              >
+                ×
+              </button>
+            </div>
+          )}
+
+          <TaskForm addTask={addTask} loading={loading} />
+
+          {totalTasks > 0 && (
+            <div className="stats">
+              <div className="stat-item">
+                <span>Total:</span>
+                <span className="stat-number">{totalTasks}</span>
+              </div>
+              <div className="stat-item">
+                <span>Pending:</span>
+                <span className="stat-number">{pendingTasks}</span>
+              </div>
+              <div className="stat-item">
+                <span>Completed:</span>
+                <span className="stat-number">{completedTasks}</span>
+              </div>
+            </div>
+          )}
+
+          <div className="filter-container">
+            <button 
+              className={`filter-button ${filter === "all" ? "active" : ""}`}
+              onClick={() => setFilter("all")}
+            >
+              All ({totalTasks})
+            </button>
+            <button 
+              className={`filter-button ${filter === "pending" ? "active" : ""}`}
+              onClick={() => setFilter("pending")}
+            >
+              Pending ({pendingTasks})
+            </button>
+            <button 
+              className={`filter-button ${filter === "completed" ? "active" : ""}`}
+              onClick={() => setFilter("completed")}
+            >
+              Completed ({completedTasks})
+            </button>
+          </div>
+
+          <TaskList
+            tasks={filteredTasks}
+            updateTask={updateTask}
+            deleteTask={deleteTask}
+            loading={loading}
+          />
+
+          {!loading && totalTasks > 0 && (
+            <div style={{
+              textAlign: 'center',
+              marginTop: '2rem',
+              padding: '1rem',
+              fontSize: '0.875rem',
+              color: '#6b7280'
+            }}>
+              {completedTasks === totalTasks ? (
+                <span>🎉 All tasks completed! Great job!</span>
+              ) : (
+                <span>Keep going! {pendingTasks} task{pendingTasks !== 1 ? 's' : ''} remaining.</span>
+              )}
+            </div>
+          )}
+        </main>
       </div>
-
-      <TaskList
-        tasks={filteredTasks}
-        updateTask={updateTask}
-        deleteTask={deleteTask}
-      />
     </div>
   );
 }
