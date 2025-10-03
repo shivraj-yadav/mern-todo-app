@@ -3,31 +3,33 @@ import axios from "axios";
 import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 function App() {
   const [tasks, setTasks] = useState([]);
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/tasks")
+      .get(`${API_URL}/api/tasks`)
       .then((res) => setTasks(res.data));
   }, []);
 
   const addTask = async (title) => {
-    const res = await axios.post("http://localhost:5000/api/tasks", { title });
+    const res = await axios.post(`${API_URL}/api/tasks`, { title });
     setTasks([...tasks, res.data]);
   };
 
   const updateTask = async (id, updatedData) => {
     const res = await axios.put(
-      `http://localhost:5000/api/tasks/${id}`,
+      `${API_URL}/api/tasks/${id}`,
       updatedData
     );
     setTasks(tasks.map((task) => (task._id === id ? res.data : task)));
   };
 
   const deleteTask = async (id) => {
-    await axios.delete(`http://localhost:5000/api/tasks/${id}`);
+    await axios.delete(`${API_URL}/api/tasks/${id}`);
     setTasks(tasks.filter((task) => task._id !== id));
   };
 
