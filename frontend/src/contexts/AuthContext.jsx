@@ -28,10 +28,10 @@ export const AuthProvider = ({ children }) => {
     console.log('🔗 Environment:', import.meta.env.PROD ? 'Production' : 'Development');
   }
 
-  // Create axios instance with auth header (increased timeout for Render cold starts)
+  // Create axios instance with auth header (optimized timeout)
   const authAPI = axios.create({
     baseURL: `${API_URL}/api/auth`,
-    timeout: 30000, // 30 seconds for Render free tier cold starts
+    timeout: IS_PRODUCTION ? 45000 : 10000, // 45s for production cold starts, 10s for dev
   });
 
   // Add token to requests if available

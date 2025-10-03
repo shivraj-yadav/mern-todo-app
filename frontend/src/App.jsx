@@ -20,23 +20,61 @@ const api = axios.create({
   },
 });
 
-// Add response interceptor for error handling
+// Add response interceptor for error handling and caching
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Cache successful responses for 5 minutes
+    if (response.config.method === 'get') {
+      const cacheKey = `${response.config.url}_${JSON.stringify(response.config.params)}`;
+      const cacheData = {
+        data: response.data,
+        timestamp: Date.now(),
+        expires: Date.now() + (5 * 60 * 1000) // 5 minutes
+      };
+      sessionStorage.setItem(cacheKey, JSON.stringify(cacheData));
+    }
+    return response;
+  },
   (error) => {
     if (import.meta.env.DEV) {
       console.error('API Error:', error);
     }
     if (error.code === 'ECONNABORTED') {
-      throw new Error('Request timeout. Please try again.');
+      throw new Error('⏱️ Request timeout. Server may be starting up, please wait...');
     }
     if (error.response?.status >= 500) {
-      throw new Error('Server error. Please try again later.');
+      throw new Error('🔧 Server error. Please try again later.');
     }
     if (error.response?.status === 404) {
-      throw new Error('Resource not found.');
+      throw new Error('❌ Resource not found.');
     }
     throw error;
+  }
+);
+
+// Add request interceptor for cache checking
+api.interceptors.request.use(
+  (config) => {
+    // Check cache for GET requests
+    if (config.method === 'get') {
+      const cacheKey = `${config.url}_${JSON.stringify(config.params)}`;
+      const cached = sessionStorage.getItem(cacheKey);
+      
+      if (cached) {
+        const cacheData = JSON.parse(cached);
+        if (Date.now() < cacheData.expires) {
+          // Return cached data as a resolved promise
+          return Promise.reject({
+            isCache: true,
+            data: cacheData.data
+          });
+        } else {
+          // Remove expired cache
+          sessionStorage.removeItem(cacheKey);
+        }
+      }
+    }
+    return config;
   }
 );
 
@@ -48,7 +86,7 @@ function TodoApp() {
   const [error, setError] = useState(null);
   const { user, token, getAuthHeader } = useAuth();
 
-  // Fetch tasks with error handling
+  // Fetch tasks with error handling and cache support
   const fetchTasks = useCallback(async () => {
     try {
       setLoading(true);
@@ -67,6 +105,16 @@ function TodoApp() {
       const tasksData = response.data.tasks || response.data;
       setTasks(Array.isArray(tasksData) ? tasksData : []);
     } catch (err) {
+      // Handle cached responses
+      if (err.isCache) {
+        const tasksData = err.data.tasks || err.data;
+        setTasks(Array.isArray(tasksData) ? tasksData : []);
+        if (import.meta.env.DEV) {
+          console.log('📦 Using cached tasks data');
+        }
+        return;
+      }
+      
       // If auth error, don't show error - let auth system handle it
       if (err.response?.status === 401) {
         setTasks([]);

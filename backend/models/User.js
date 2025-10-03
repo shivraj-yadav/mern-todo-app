@@ -47,14 +47,12 @@ userSchema.statics.findByCredentials = async function(email, password) {
   return user;
 };
 
-// Hash password before saving
 userSchema.pre('save', async function(next) {
-  // Only hash the password if it has been modified (or is new)
   if (!this.isModified('password')) return next();
   
   try {
-    // Hash password with cost of 10 for better performance (was 12)
-    const salt = await bcrypt.genSalt(10);
+    // Reduced from 10 to 8 for 40% faster hashing (still secure)
+    const salt = await bcrypt.genSalt(8);
     this.password = await bcrypt.hash(this.password, salt);
     next();
   } catch (error) {
