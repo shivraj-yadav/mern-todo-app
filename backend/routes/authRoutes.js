@@ -119,62 +119,43 @@ router.post('/login', async (req, res) => {
 
     const trimmedEmail = email.toLowerCase().trim();
 
-    // Optimized: Find user and check password in one operation using static method
-    try {
-      const user = await User.findByCredentials(trimmedEmail, password);
-      
-      // Generate token immediately after successful authentication
-      const token = generateToken(user._id);
-
-      res.json({
-        success: true,
-        message: 'Login successful! Welcome back!',
-        token,
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email
-        }
-      });
-    } catch (authError) {
-      // Handle authentication errors from User.findByCredentials
-      if (authError.message === 'USER_NOT_FOUND') {
-        return res.status(404).json({
-          success: false,
-          message: 'User does not exist. Please register first.',
-          code: 'USER_NOT_FOUND'
-        });
-      }
-      
-      if (authError.message === 'INVALID_PASSWORD') {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid email or password. Please try again.',
-          code: 'INVALID_PASSWORD'
-        });
-      }
-      
-      throw authError; // Re-throw unexpected errors
-    }
-  } catch (error) {
-    console.error('Login error:', error);
+    // Find user first
+    const user = await User.findOne({ email: trimmedEmail }).select('+password');
     
-    // Handle specific error types
-    if (error.message === 'USER_NOT_FOUND') {
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: 'User does not exist. Please register first.',
         code: 'USER_NOT_FOUND'
       });
     }
+
+    // Check password
+    const isPasswordMatch = await user.comparePassword(password);
     
-    if (error.message === 'INVALID_PASSWORD') {
+    if (!isPasswordMatch) {
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password. Please try again.',
         code: 'INVALID_PASSWORD'
       });
     }
+
+    // Generate token
+    const token = generateToken(user._id);
+
+    res.json({
+      success: true,
+      message: 'Login successful! Welcome back!',
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email
+      }
+    });
+  } catch (error) {
+    console.error('Login error:', error);
     
     // Generic server error
     res.status(500).json({

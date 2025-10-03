@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import ErrorMessage from './ErrorMessage';
+import SuccessMessage from './SuccessMessage';
 
 const Login = ({ onSwitchToRegister }) => {
   const [formData, setFormData] = useState({
@@ -10,6 +11,7 @@ const Login = ({ onSwitchToRegister }) => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const { login } = useAuth();
 
@@ -64,15 +66,22 @@ const Login = ({ onSwitchToRegister }) => {
       const result = await login({ email: formData.email, password: formData.password });
       
       if (result.success) {
-        // Success - no need for alert, just clear any errors
+        // Success - clear errors and show success message
         setError('');
-        console.log('Login successful:', result.message);
+        setSuccess(result.message || 'Login successful! Welcome back!');
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccess(''), 3000);
       } else {
-        // Show error message in UI instead of alert
+        // Show error message in UI
+        setSuccess('');
         setError(result.error || 'Login failed. Please try again.');
       }
     } catch (error) {
-      console.error('Unexpected login error:', error);
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error('Unexpected login error:', error);
+      }
       setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -88,6 +97,10 @@ const Login = ({ onSwitchToRegister }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
+          <SuccessMessage 
+            message={success} 
+            onClose={() => setSuccess('')}
+          />
           <ErrorMessage 
             error={error} 
             onClose={() => setError('')}

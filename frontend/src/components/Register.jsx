@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import ErrorMessage from './ErrorMessage';
+import SuccessMessage from './SuccessMessage';
 
 const Register = ({ onSwitchToLogin }) => {
   const [formData, setFormData] = useState({
@@ -11,13 +12,13 @@ const Register = ({ onSwitchToLogin }) => {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const { register } = useAuth();
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
+    setFormData((prevFormData) => ({
+      ...prevFormData,
       [name]: value
     }));
     
@@ -76,15 +77,22 @@ const Register = ({ onSwitchToLogin }) => {
       });
 
       if (result.success) {
-        // Success - clear any errors
+        // Success - clear errors and show success message
         setError('');
-        console.log('Registration successful:', result.message);
+        setSuccess(result.message || 'Registration successful! Welcome to Todo Master!');
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccess(''), 3000);
       } else {
-        // Show error message in UI instead of alert
+        // Show error message in UI
+        setSuccess('');
         setError(result.error || 'Registration failed. Please try again.');
       }
     } catch (error) {
-      console.error('Unexpected registration error:', error);
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error('Unexpected registration error:', error);
+      }
       setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -100,6 +108,10 @@ const Register = ({ onSwitchToLogin }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
+          <SuccessMessage 
+            message={success} 
+            onClose={() => setSuccess('')}
+          />
           <ErrorMessage 
             error={error} 
             onClose={() => setError('')}

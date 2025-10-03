@@ -22,10 +22,10 @@ export const AuthProvider = ({ children }) => {
   const IS_PRODUCTION = import.meta.env.PROD;
   
   // Debug logging (only in development)
-  if (!IS_PRODUCTION) {
+  if (import.meta.env.DEV) {
     console.log('🔗 API_URL:', API_URL);
     console.log('🔗 Auth API Base URL:', `${API_URL}/api/auth`);
-    console.log('🔗 Environment:', IS_PRODUCTION ? 'Production' : 'Development');
+    console.log('🔗 Environment:', import.meta.env.PROD ? 'Production' : 'Development');
   }
 
   // Create axios instance with auth header (increased timeout for Render cold starts)
@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       setLoading(true);
-      if (!IS_PRODUCTION) {
+      if (import.meta.env.DEV) {
         console.log('🚀 Starting registration request...');
         console.log('⏳ This may take 30-60 seconds if Render service is sleeping...');
       }
@@ -89,7 +89,10 @@ export const AuthProvider = ({ children }) => {
         data: response.data 
       };
     } catch (error) {
-      console.error('Registration error:', error);
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error('Registration error:', error);
+      }
       
       // Handle specific error cases with better messages
       let errorMessage = 'Registration failed. Please try again.';
@@ -99,19 +102,24 @@ export const AuthProvider = ({ children }) => {
         errorMessage = error.response.data.message || 'Registration failed. Please try again.';
         errorCode = error.response.data.code;
         
-        // Log the full error for debugging
-        console.log('Registration error details:', {
-          status: error.response.status,
-          data: error.response.data,
-          message: errorMessage,
-          code: errorCode
-        });
+        // Log the full error for debugging (dev only)
+        if (import.meta.env.DEV) {
+          console.log('Registration error details:', {
+            status: error.response.status,
+            data: error.response.data,
+            message: errorMessage,
+            code: errorCode
+          });
+        }
       } else if (error.message === 'Network Error') {
         errorMessage = 'Unable to connect to server. Please check your internet connection.';
       } else if (error.code === 'ECONNABORTED') {
         errorMessage = 'Request timeout. The server may be starting up, please try again in a moment.';
       } else {
-        console.log('Unexpected registration error:', error);
+        if (import.meta.env.DEV) {
+          console.log('Unexpected registration error:', error);
+        }
+        errorMessage = 'Something went wrong. Please try again.';
       }
       
       return { 
@@ -128,7 +136,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       setLoading(true);
-      if (!IS_PRODUCTION) {
+      if (import.meta.env.DEV) {
         console.log('🚀 Starting login request...');
       }
       
@@ -147,7 +155,10 @@ export const AuthProvider = ({ children }) => {
         data: response.data 
       };
     } catch (error) {
-      console.error('Login error:', error);
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error('Login error:', error);
+      }
       
       // Handle specific login error cases
       let errorMessage = 'Invalid email or password. Please try again.';
@@ -157,13 +168,15 @@ export const AuthProvider = ({ children }) => {
         errorMessage = error.response.data.message || 'Invalid email or password. Please try again.';
         errorCode = error.response.data.code;
         
-        // Log the full error for debugging
-        console.log('Login error details:', {
-          status: error.response.status,
-          data: error.response.data,
-          message: errorMessage,
-          code: errorCode
-        });
+        // Log the full error for debugging (dev only)
+        if (import.meta.env.DEV) {
+          console.log('Login error details:', {
+            status: error.response.status,
+            data: error.response.data,
+            message: errorMessage,
+            code: errorCode
+          });
+        }
         
         // Handle specific status codes
         if (error.response.status === 404) {
@@ -178,7 +191,10 @@ export const AuthProvider = ({ children }) => {
       } else if (error.code === 'ECONNABORTED') {
         errorMessage = 'Request timeout. The server may be starting up, please try again in a moment.';
       } else {
-        console.log('Unexpected login error:', error);
+        if (import.meta.env.DEV) {
+          console.log('Unexpected login error:', error);
+        }
+        errorMessage = 'Something went wrong. Please try again.';
       }
       
       return { 
