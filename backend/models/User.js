@@ -28,8 +28,24 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index is automatically created by unique: true, so we don't need this
-// userSchema.index({ email: 1 });
+// Performance optimization: Create compound index for faster queries
+userSchema.index({ email: 1, createdAt: -1 });
+
+// Add method to find user by credentials (optimized)
+userSchema.statics.findByCredentials = async function(email, password) {
+  const user = await this.findOne({ email }).select('+password');
+  
+  if (!user) {
+    throw new Error('USER_NOT_FOUND');
+  }
+
+  const isMatch = await user.comparePassword(password);
+  if (!isMatch) {
+    throw new Error('INVALID_PASSWORD');
+  }
+
+  return user;
+};
 
 // Hash password before saving
 userSchema.pre('save', async function(next) {
@@ -37,8 +53,8 @@ userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   
   try {
-    // Hash password with cost of 12
-    const salt = await bcrypt.genSalt(12);
+    // Hash password with cost of 10 for better performance (was 12)
+    const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
     next();
   } catch (error) {

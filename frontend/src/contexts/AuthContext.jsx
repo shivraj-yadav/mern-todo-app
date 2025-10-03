@@ -60,18 +60,20 @@ export const AuthProvider = ({ children }) => {
           setUser(null);
         }
       }
-      setLoading(false);
     };
 
     checkAuth();
   }, [token]);
 
-  // Register function
+  // Register function with enhanced error handling
   const register = async (userData) => {
     try {
       setLoading(true);
-      console.log('🚀 Starting registration request...');
-      console.log('⏳ This may take 30-60 seconds if Render service is sleeping...');
+      if (!IS_PRODUCTION) {
+        console.log('🚀 Starting registration request...');
+        console.log('⏳ This may take 30-60 seconds if Render service is sleeping...');
+      }
+      
       const response = await authAPI.post('/register', userData);
       
       const { token: newToken, user: newUser } = response.data;
@@ -81,20 +83,50 @@ export const AuthProvider = ({ children }) => {
       setToken(newToken);
       setUser(newUser);
       
-      return { success: true, data: response.data };
+      return { 
+        success: true, 
+        message: 'Registration successful! Welcome to Todo Master!',
+        data: response.data 
+      };
     } catch (error) {
       console.error('Registration error:', error);
-      const message = error.response?.data?.message || 'Registration failed';
-      return { success: false, error: message };
+      
+      // Handle specific error cases with better messages
+      let errorMessage = 'Registration failed. Please try again.';
+      let errorCode = null;
+      
+      if (error.response?.data) {
+        errorMessage = error.response.data.message;
+        errorCode = error.response.data.code;
+        
+        // Custom handling for specific error codes
+        if (errorCode === 'USER_EXISTS') {
+          errorMessage = 'An account with this email already exists. Please login instead.';
+        }
+      } else if (error.message === 'Network Error') {
+        errorMessage = 'Unable to connect to server. Please check your internet connection.';
+      } else if (error.code === 'ECONNABORTED') {
+        errorMessage = 'Request timeout. The server may be starting up, please try again in a moment.';
+      }
+      
+      return { 
+        success: false, 
+        error: errorMessage,
+        code: errorCode
+      };
     } finally {
       setLoading(false);
     }
   };
 
-  // Login function
+  // Login function with enhanced error handling
   const login = async (credentials) => {
     try {
       setLoading(true);
+      if (!IS_PRODUCTION) {
+        console.log('🚀 Starting login request...');
+      }
+      
       const response = await authAPI.post('/login', credentials);
       
       const { token: newToken, user: newUser } = response.data;
@@ -104,11 +136,39 @@ export const AuthProvider = ({ children }) => {
       setToken(newToken);
       setUser(newUser);
       
-      return { success: true, data: response.data };
+      return { 
+        success: true, 
+        message: 'Login successful! Welcome back!',
+        data: response.data 
+      };
     } catch (error) {
       console.error('Login error:', error);
-      const message = error.response?.data?.message || 'Login failed';
-      return { success: false, error: message };
+      
+      // Handle specific login error cases
+      let errorMessage = 'Login failed. Please try again.';
+      let errorCode = null;
+      
+      if (error.response?.data) {
+        errorMessage = error.response.data.message;
+        errorCode = error.response.data.code;
+        
+        // Custom handling for specific error codes
+        if (errorCode === 'USER_NOT_FOUND') {
+          errorMessage = 'User does not exist. Please register first.';
+        } else if (errorCode === 'INVALID_PASSWORD') {
+          errorMessage = 'Invalid password. Please try again.';
+        }
+      } else if (error.message === 'Network Error') {
+        errorMessage = 'Unable to connect to server. Please check your internet connection.';
+      } else if (error.code === 'ECONNABORTED') {
+        errorMessage = 'Request timeout. The server may be starting up, please try again in a moment.';
+      }
+      
+      return { 
+        success: false, 
+        error: errorMessage,
+        code: errorCode
+      };
     } finally {
       setLoading(false);
     }

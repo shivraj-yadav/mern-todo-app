@@ -35,18 +35,22 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const trimmedEmail = email.toLowerCase().trim();
+
+    // Optimized: Check if user already exists (use lean() for better performance)
+    const existingUser = await User.findOne({ email: trimmedEmail }).lean();
+
     if (existingUser) {
       return res.status(400).json({
-        message: 'User already exists with this email'
+        message: 'User already exists with this email. Please login instead.',
+        code: 'USER_EXISTS'
       });
     }
 
     // Create user
     const user = new User({
       name: name.trim(),
-      email: email.toLowerCase().trim(),
+      email: trimmedEmail,
       password
     });
 
@@ -88,7 +92,7 @@ router.post('/register', async (req, res) => {
 });
 
 // @route   POST /api/auth/login
-// @desc    Login user
+// @desc    Login user with enhanced error handling
 // @access  Public
 router.post('/login', async (req, res) => {
   try {
@@ -101,8 +105,27 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Find user and check password
-    const user = await User.findByCredentials(email.toLowerCase().trim(), password);
+    const trimmedEmail = email.toLowerCase().trim();
+
+    // Check if user exists first
+    const user = await User.findOne({ email: trimmedEmail }).select('+password');
+    
+    if (!user) {
+      return res.status(404).json({
+        message: 'User does not exist. Please register first.',
+        code: 'USER_NOT_FOUND'
+      });
+    }
+
+    // Check password
+    const isPasswordMatch = await user.comparePassword(password);
+    
+    if (!isPasswordMatch) {
+      return res.status(401).json({
+        message: 'Invalid password. Please try again.',
+        code: 'INVALID_PASSWORD'
+      });
+    }
 
     // Generate token
     const token = generateToken(user._id);

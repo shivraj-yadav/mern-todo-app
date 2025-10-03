@@ -61,24 +61,39 @@ const Register = ({ onSwitchToLogin }) => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-    const result = await register({
-      name: formData.name.trim(),
-      email: formData.email.trim(),
-      password: formData.password
-    });
-    
-    if (!result.success) {
-      setErrors({ general: result.error });
+    try {
+      const result = await register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password
+      });
+
+      if (result.success) {
+        // Show success message
+        alert(result.message || 'Registration successful! Welcome to Todo Master!');
+      } else {
+        // Show specific error message with alert for better UX
+        if (result.code === 'USER_EXISTS') {
+          alert('An account with this email already exists. Please login instead.');
+        } else {
+          alert(result.error || 'Registration failed');
+        }
+        setError(result.error || 'Registration failed');
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      const errorMsg = 'An unexpected error occurred. Please try again.';
+      alert(errorMsg);
+      setError(errorMsg);
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    setIsSubmitting(false);
   };
 
   return (
@@ -90,9 +105,9 @@ const Register = ({ onSwitchToLogin }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
-          {errors.general && (
+          {error && (
             <div className="error-message">
-              <span>⚠️ {errors.general}</span>
+              <span>⚠️ {error}</span>
             </div>
           )}
 

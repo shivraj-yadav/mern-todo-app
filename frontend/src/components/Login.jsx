@@ -8,6 +8,7 @@ const Login = ({ onSwitchToRegister }) => {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const { login } = useAuth();
 
@@ -40,23 +41,49 @@ const Login = ({ onSwitchToRegister }) => {
       newErrors.password = 'Password is required';
     }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) return;
+    if (isSubmitting) return;
 
     setIsSubmitting(true);
-    const result = await login(formData);
-    
-    if (!result.success) {
-      setErrors({ general: result.error });
+    setError('');
+
+    // Validate form first
+    const formErrors = validateForm();
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
+      setIsSubmitting(false);
+      return;
     }
-    
-    setIsSubmitting(false);
+
+    try {
+      const result = await login({ email: formData.email, password: formData.password });
+      
+      if (result.success) {
+        // Show success message briefly before redirect
+        alert(result.message || 'Login successful!');
+      } else {
+        // Show specific error message with alert for better UX
+        if (result.code === 'USER_NOT_FOUND') {
+          alert('User does not exist. Please register first.');
+        } else if (result.code === 'INVALID_PASSWORD') {
+          alert('Invalid password. Please try again.');
+        } else {
+          alert(result.error || 'Login failed');
+        }
+        setError(result.error || 'Login failed');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      const errorMsg = 'An unexpected error occurred. Please try again.';
+      alert(errorMsg);
+      setError(errorMsg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -68,9 +95,9 @@ const Login = ({ onSwitchToRegister }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
-          {errors.general && (
+          {error && (
             <div className="error-message">
-              <span>⚠️ {errors.general}</span>
+              <span>⚠️ {error}</span>
             </div>
           )}
 
