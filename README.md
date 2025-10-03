@@ -290,9 +290,7 @@ This project demonstrates:
 - Free tier backend may have cold starts (30-50 second delay)
 - MongoDB Atlas free tier has 512MB storage limit
 
-## 📄 License
 
-This project is open source and available under the [MIT License](LICENSE).
 
 ## 👨‍💻 Author
 
