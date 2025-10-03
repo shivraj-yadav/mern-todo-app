@@ -138,28 +138,32 @@ export const AuthProvider = ({ children }) => {
         });
       }
       
-      if (error.response?.data) {
-        errorMessage = error.response.data.message || errorMessage;
+      if (error.response?.data?.message) {
+        // Use the exact message from backend
+        errorMessage = error.response.data.message;
         errorCode = error.response.data.code;
-        
-        // Log the full error for debugging (dev only)
-        if (import.meta.env.DEV) {
-          console.log('Registration error details:', {
-            status: error.response.status,
-            data: error.response.data,
-            message: errorMessage,
-            code: errorCode
-          });
+      } else if (error.response?.status) {
+        // Fallback messages based on status code
+        switch (error.response.status) {
+          case 400:
+            errorMessage = 'Invalid registration data. Please check your details.';
+            break;
+          case 409:
+          case 11000: // MongoDB duplicate key error
+            errorMessage = 'User already exists. Please login instead.';
+            break;
+          case 500:
+            errorMessage = 'Server error. Please try again later.';
+            break;
+          default:
+            errorMessage = 'Registration failed. Please try again.';
         }
       } else if (error.message === 'Network Error') {
-        errorMessage = 'Unable to connect to server. Please check your internet connection.';
+        errorMessage = 'Server unreachable. Try again later.';
       } else if (error.code === 'ECONNABORTED') {
-        errorMessage = 'Request timeout. The server may be starting up, please try again in a moment.';
+        errorMessage = 'Request timeout. Server may be starting up.';
       } else {
-        if (import.meta.env.DEV) {
-          console.log('Unexpected registration error:', error);
-        }
-        errorMessage = 'Something went wrong. Please try again.';
+        errorMessage = 'Registration failed. Please try again.';
       }
       
       return { 
@@ -212,26 +216,37 @@ export const AuthProvider = ({ children }) => {
         });
       }
       
-      if (error.response?.data) {
-        errorMessage = error.response.data.message || errorMessage;
+      if (error.response?.data?.message) {
+        // Use the exact message from backend
+        errorMessage = error.response.data.message;
         errorCode = error.response.data.code;
-        
-        // Handle specific status codes with user-friendly messages
-        if (error.response.status === 404) {
-          errorMessage = 'User does not exist. Please register first.';
-        } else if (error.response.status === 401) {
-          errorMessage = 'Invalid email or password. Please try again.';
-        } else if (error.response.status === 400) {
-          errorMessage = error.response.data.message || 'Please check your input and try again.';
-        } else if (error.response.status >= 500) {
-          errorMessage = 'Server error. Please try again later.';
+      } else if (error.response?.status) {
+        // Fallback messages based on status code
+        switch (error.response.status) {
+          case 400:
+            errorMessage = 'Invalid input. Please check your details.';
+            break;
+          case 401:
+            errorMessage = 'Invalid email or password.';
+            break;
+          case 404:
+            errorMessage = 'User does not exist. Please register first.';
+            break;
+          case 409:
+            errorMessage = 'User already exists. Please login instead.';
+            break;
+          case 500:
+            errorMessage = 'Server error. Please try again later.';
+            break;
+          default:
+            errorMessage = 'Something went wrong. Please try again.';
         }
       } else if (error.message === 'Network Error') {
-        errorMessage = 'Unable to connect to server. Please check your internet connection.';
+        errorMessage = 'Server unreachable. Try again later.';
       } else if (error.code === 'ECONNABORTED') {
-        errorMessage = 'Request timeout. The server may be starting up, please try again in a moment.';
+        errorMessage = 'Request timeout. Server may be starting up.';
       } else {
-        errorMessage = 'Something went wrong. Please try again.';
+        errorMessage = 'Connection failed. Please try again.';
       }
       
       return { 

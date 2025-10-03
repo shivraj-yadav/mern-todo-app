@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import AuthErrorMessage from './AuthErrorMessage';
+import ErrorAlert from './ErrorAlert';
 import SuccessMessage from './SuccessMessage';
 
 const Login = ({ onSwitchToRegister }) => {
@@ -82,6 +82,9 @@ const Login = ({ onSwitchToRegister }) => {
         const errorMessage = result?.error || 'Login failed. Please try again.';
         setError(errorMessage);
         
+        // Also show alert for immediate feedback
+        alert(`Login Failed: ${errorMessage}`);
+        
         if (import.meta.env.DEV) {
           console.log('🚨 Login error displayed:', errorMessage);
         }
@@ -111,7 +114,7 @@ const Login = ({ onSwitchToRegister }) => {
             message={success} 
             onClose={() => setSuccess('')}
           />
-          <AuthErrorMessage 
+          <ErrorAlert 
             error={error} 
             onClose={() => setError('')}
           />
@@ -167,10 +170,7 @@ const Login = ({ onSwitchToRegister }) => {
                 Signing In...
               </>
             ) : (
-              <>
-                <span>🔑</span>
-                Sign In
-              </>
+              'Sign In'
             )}
           </button>
         </form>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import AuthErrorMessage from './AuthErrorMessage';
+import ErrorAlert from './ErrorAlert';
 import SuccessMessage from './SuccessMessage';
 
 const Register = ({ onSwitchToLogin }) => {
@@ -88,6 +88,9 @@ const Register = ({ onSwitchToLogin }) => {
         const errorMessage = result?.error || 'Registration failed. Please try again.';
         setError(errorMessage);
         
+        // Also show alert for immediate feedback
+        alert(`Registration Failed: ${errorMessage}`);
+        
         if (import.meta.env.DEV) {
           console.log('🚨 Registration error displayed:', errorMessage);
         }
@@ -116,7 +119,7 @@ const Register = ({ onSwitchToLogin }) => {
             message={success} 
             onClose={() => setSuccess('')}
           />
-          <AuthErrorMessage 
+          <ErrorAlert 
             error={error} 
             onClose={() => setError('')}
           />
@@ -209,13 +212,10 @@ const Register = ({ onSwitchToLogin }) => {
             {isSubmitting ? (
               <>
                 <div className="spinner"></div>
-                Creating Account... (may take 30-60s)
+                Creating Account...
               </>
             ) : (
-              <>
-                <span>🚀</span>
-                Create Account
-              </>
+              'Create Account'
             )}
           </button>
         </form>
