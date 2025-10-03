@@ -9,7 +9,7 @@ const app = express();
 // CORS configuration for production
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? process.env.FRONTEND_URL 
+    ? ['https://mern-todo-app-five-xi.vercel.app', process.env.FRONTEND_URL]
     : 'http://localhost:5173',
   credentials: true
 };
