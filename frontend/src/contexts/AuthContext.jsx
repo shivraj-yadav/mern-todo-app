@@ -50,14 +50,21 @@ export const AuthProvider = ({ children }) => {
         try {
           const response = await authAPI.get('/me');
           setUser(response.data.user);
+          if (import.meta.env.DEV) {
+            console.log('✅ User authenticated:', response.data.user.name);
+          }
         } catch (error) {
           if (import.meta.env.DEV) {
-            console.error('Auth check failed:', error);
+            console.error('❌ Auth check failed:', error.response?.status);
           }
           // Token is invalid, remove it
           localStorage.removeItem('token');
           setToken(null);
           setUser(null);
+        }
+      } else {
+        if (import.meta.env.DEV) {
+          console.log('🔓 No token found, user not authenticated');
         }
       }
       // Always set loading to false after auth check
@@ -246,7 +253,19 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is authenticated
   const isAuthenticated = () => {
-    return !!user && !!token;
+    const hasValidToken = !!token && token !== 'null' && token !== 'undefined';
+    const hasValidUser = !!user && user !== null;
+    
+    if (import.meta.env.DEV) {
+      console.log('🔐 Auth Check:', {
+        hasValidToken,
+        hasValidUser,
+        token: token ? `${token.substring(0, 10)}...` : 'null',
+        user: user ? user.name : 'null'
+      });
+    }
+    
+    return hasValidToken && hasValidUser;
   };
 
   // Get auth header for API calls

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import AuthWrapper from "./components/AuthWrapper";
+import Navigation from "./components/Navigation";
 import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
 import "./index.css";
@@ -146,6 +147,7 @@ function TodoApp() {
 
   return (
     <>
+      <Navigation />
       <div className="app">
         <div className="app-container">
           <header className="app-header">
