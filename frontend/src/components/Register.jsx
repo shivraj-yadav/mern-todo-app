@@ -14,6 +14,9 @@ const Register = ({ onSwitchToLogin }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  
+  // Get register function from AuthContext
+  const { register } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
