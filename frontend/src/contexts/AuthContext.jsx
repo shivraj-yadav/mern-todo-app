@@ -38,10 +38,8 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (token) {
       authAPI.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     } else {
       delete authAPI.defaults.headers.common['Authorization'];
-      delete axios.defaults.headers.common['Authorization'];
     }
   }, [token]);
 
@@ -53,16 +51,29 @@ export const AuthProvider = ({ children }) => {
           const response = await authAPI.get('/me');
           setUser(response.data.user);
         } catch (error) {
-          console.error('Auth check failed:', error);
+          if (import.meta.env.DEV) {
+            console.error('Auth check failed:', error);
+          }
           // Token is invalid, remove it
           localStorage.removeItem('token');
           setToken(null);
           setUser(null);
         }
       }
+      // Always set loading to false after auth check
+      setLoading(false);
     };
 
-    checkAuth();
+    // Add timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      setLoading(false);
+    }, 10000); // 10 seconds max
+
+    checkAuth().finally(() => {
+      clearTimeout(timeoutId);
+    });
+
+    return () => clearTimeout(timeoutId);
   }, [token]);
 
   // Register function with enhanced error handling
