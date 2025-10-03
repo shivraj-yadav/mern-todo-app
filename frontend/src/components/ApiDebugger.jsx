@@ -4,25 +4,17 @@ import axios from 'axios';
 const ApiDebugger = () => {
   const [testResults, setTestResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-
   if (!import.meta.env.DEV) return null;
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   const addResult = (test, status, message, details = null) => {
-    const result = {
-      test,
-      status,
-      message,
-      details,
-      timestamp: new Date().toLocaleTimeString()
-    };
     setTestResults(prev => [result, ...prev.slice(0, 9)]); // Keep last 10 results
   };
 
-  const testApiConnection = async () => {
+  const testRegistration = async () => {
     setIsLoading(true);
-    addResult('API Connection', 'testing', 'Testing API connection...');
+    addResult('Registration Test', 'testing', 'Testing registration endpoint...');
 
     try {
       const response = await axios.get(`${API_URL}/api/health`, { timeout: 10000 });
@@ -110,6 +102,10 @@ const ApiDebugger = () => {
         </button>
         <button onClick={testCors} disabled={isLoading} className="debug-btn">
           🔄 Test CORS
+        </button>
+        
+        <button onClick={testRegistration} disabled={isLoading} className="debug-btn">
+          📝 Test Register
         </button>
       </div>
       

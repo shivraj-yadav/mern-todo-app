@@ -106,11 +106,19 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       if (import.meta.env.DEV) {
-        console.log('🚀 Starting registration request...');
-        console.log('⏳ This may take 30-60 seconds if Render service is sleeping...');
+        console.log('🚀 Starting registration request...', {
+          name: userData.name,
+          email: userData.email,
+          hasPassword: !!userData.password,
+          apiUrl: `${API_URL}/api/auth/register`
+        });
       }
       
       const response = await authAPI.post('/register', userData);
+      
+      if (import.meta.env.DEV) {
+        console.log('✅ Registration response:', response.data);
+      }
       
       const { token: newToken, user: newUser } = response.data;
       
@@ -121,7 +129,7 @@ export const AuthProvider = ({ children }) => {
       
       return { 
         success: true, 
-        message: 'Registration successful! Welcome to Todo Master!',
+        message: response.data.message || 'Registration successful! Welcome to Todo Master!',
         data: response.data 
       };
     } catch (error) {

@@ -53,9 +53,31 @@ app.get('/api/health', (req, res) => {
     message: 'MERN Todo API is running',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
-    version: '1.0.0'
+    version: '1.0.0',
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
 });
+
+// Test registration endpoint (development only)
+if (process.env.NODE_ENV !== 'production') {
+  app.post('/api/test-register', async (req, res) => {
+    try {
+      console.log('Test registration request:', req.body);
+      res.json({
+        success: true,
+        message: 'Test endpoint working',
+        receivedData: req.body,
+        mongoStatus: mongoose.connection.readyState
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Test endpoint error',
+        error: error.message
+      });
+    }
+  });
+}
 
 // Request logging in production
 if (process.env.NODE_ENV === 'production') {

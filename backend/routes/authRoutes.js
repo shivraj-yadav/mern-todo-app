@@ -85,18 +85,28 @@ router.post('/register', async (req, res) => {
     
     // Handle duplicate email (MongoDB duplicate key error)
     if (error.code === 11000) {
+      console.error('Duplicate email registration attempt:', error.keyValue);
       return res.status(400).json({
         success: false,
-        message: 'An account with this email already exists. Please login instead.',
+        message: 'User already exists with this email. Please login instead.',
         code: 'USER_EXISTS'
       });
     }
+    
+    // Log the full error for debugging
+    console.error('Registration error details:', {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
     
     // Generic server error
     res.status(500).json({
       success: false,
       message: 'Server error during registration. Please try again later.',
-      code: 'SERVER_ERROR'
+      code: 'SERVER_ERROR',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });

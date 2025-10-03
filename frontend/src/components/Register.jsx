@@ -99,9 +99,16 @@ const Register = ({ onSwitchToLogin }) => {
       // Handle unexpected errors
       if (import.meta.env.DEV) {
         console.error('❌ Unexpected registration error:', error);
+        console.error('Error details:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status
+        });
       }
       setSuccess('');
-      setError('An unexpected error occurred. Please try again.');
+      const errorMessage = error.response?.data?.message || error.message || 'Registration failed. Please try again.';
+      setError(errorMessage);
+      alert(`Registration Error: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }
