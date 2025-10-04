@@ -1,12 +1,12 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
-import App from "./App.jsx";
+import FastApp from './FastApp.jsx';
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <ErrorBoundary>
-      <App />
+      <FastApp />
     </ErrorBoundary>
   </StrictMode>
 );

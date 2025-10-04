@@ -10,7 +10,7 @@ const app = express();
 // Production CORS configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS 
   ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['https://mern-todo-app-five-xi.vercel.app', 'http://localhost:5173'];
+  : ['https://todo-app.vercel.app', 'https://mern-todo-app-five-xi.vercel.app', 'http://localhost:5173'];
 
 app.use(cors({
   origin: function (origin, callback) {

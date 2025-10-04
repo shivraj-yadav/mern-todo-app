@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import AuthWrapper from "./components/AuthWrapper";
@@ -7,6 +7,8 @@ import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
 import PerformanceMonitor from "./components/PerformanceMonitor";
 import DevTools from "./components/DevTools";
+import { startKeepAlive, stopKeepAlive } from "./utils/keepAlive";
+import { cachedFetch } from "./utils/apiCache";
 import "./index.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -75,17 +77,17 @@ api.interceptors.request.use(
           sessionStorage.removeItem(cacheKey);
         }
       }
-    }
     return config;
   }
 );
 
 // Main Todo Component (authenticated users only)
-function TodoApp() {
+function App() {
+  const { user, token, loading: authLoading } = useAuth();
   const [tasks, setTasks] = useState([]);
-  const [filter, setFilter] = useState("all");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [filter, setFilter] = useState('all');
+  const [keepAliveId, setKeepAliveId] = useState(null);
   const { user, token, getAuthHeader } = useAuth();
 
   // Fetch tasks with error handling and cache support
